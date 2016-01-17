@@ -19,8 +19,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import com.parse.Parse;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,15 +47,18 @@ public class MainActivity extends AppCompatActivity implements
 
         initializeGoogleApiClient();
         startSendingLocationAtInterval();
+        setupParse();
+    }
 
+    public void setupParse() {
+        Parse.enableLocalDatastore(this);
+        ParseObject.registerSubclass(LocationCoordinates.class);
+        Parse.initialize(this, "x7Q6obaRCEfUdzPsPkuSn91woz3dUV9K81dEnaWj", "iX1mykGp2PgwO7uudVDpgBPeXGqZKjATtrmIUqtz");
     }
 
     public void startSendingLocationAtInterval() {
-
-
         timer = new Timer();
         timer.schedule(new SendLocationTimerTask(), 0, 5000);
-
     }
 
     protected void initializeGoogleApiClient() {
@@ -126,6 +133,13 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    private void createAndSaveLocation(String locationString) {
+        LocationCoordinates locationCoordinates = new LocationCoordinates();
+        locationCoordinates.setLocation(locationString);
+        Date date = new Date();
+        locationCoordinates.setTimeVisited(date);
+        locationCoordinates.saveInBackground();
+    }
 
     public class SendLocationTimerTask extends TimerTask {
         @Override
@@ -134,12 +148,9 @@ public class MainActivity extends AppCompatActivity implements
             Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mCurrentLocation != null) {
                 // Print current location if not null
-
-
-
-
-                Log.d("DEBUG", "current location: " + mCurrentLocation.toString());
-                LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                String locationString = mCurrentLocation.getLongitude() + "," + mCurrentLocation.getLatitude();
+                createAndSaveLocation(locationString);
+                Log.d("DEBUG", "current location: " + locationString);
             }
         }
     }
