@@ -20,6 +20,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -88,16 +89,14 @@ public class MainActivity extends AppCompatActivity implements
         else {
             Log.d("DEBUG", "Current Location is NULL");
         }
-//         Begin polling for new location updates.
 
+//         Begin polling for new location updates.
         startLocationUpdates();
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         Log.d("DEBUG", "SUSPENDED");
-
-
         if (i == CAUSE_SERVICE_DISCONNECTED) {
             Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
         } else if (i == CAUSE_NETWORK_LOST) {
@@ -135,6 +134,10 @@ public class MainActivity extends AppCompatActivity implements
             Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mCurrentLocation != null) {
                 // Print current location if not null
+
+
+
+
                 Log.d("DEBUG", "current location: " + mCurrentLocation.toString());
                 LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             }
