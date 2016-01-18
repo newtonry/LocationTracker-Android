@@ -4,7 +4,9 @@ import android.util.Log;
 
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
+import com.parse.SaveCallback;
 
+import java.text.ParseException;
 import java.util.Date;
 
 
@@ -35,7 +37,16 @@ public class LocationCoordinates extends ParseObject {
             Log.d("DEBUG", "Not saving to Parse. Missing username!");
         } else {
             Log.d("DEBUG", "Uploading location to Parse!");
-            this.saveInBackground();
+            this.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(com.parse.ParseException e) {
+                    if (e == null) {
+                        Log.d("DEBUG", "Successfully saved to Parse!");
+                    } else {
+                        Log.d("DEBUG", "There was an issue saving to Parse.");
+                    }
+                }
+            });
         }
     }
 }

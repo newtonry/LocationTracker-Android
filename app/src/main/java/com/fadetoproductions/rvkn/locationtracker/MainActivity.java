@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private long UPDATE_INTERVAL = 299 * 1000;  /* 299 secs */
     private long FASTEST_INTERVAL = 2000; /* 2 sec */
-    private long TIMER_INTERVAL = 300 * 1000; /* 5 mins */
+    private long TIMER_INTERVAL = 5 * 60 * 1000; /* 5 mins */
 
     static Timer timer;
 
@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements
                 String toastString = "Alright " + username + "! Let's this show on the road. Hopefully this is working :). You should be able to background the app now.";
                 Toast.makeText(getApplicationContext(), toastString, Toast.LENGTH_LONG).show();
                 finalNameTextView.setText(username);
+                getAndSendLocation();
             }
         });
     }
@@ -120,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements
 //        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 
         Log.d("DEBUG", "STOPPED");
-        Log.d("DEBUG", username);
         super.onStop();
     }
 
@@ -168,9 +168,21 @@ public class MainActivity extends AppCompatActivity implements
                 mLocationRequest, this);
     }
 
+
     @Override
     public void onLocationChanged(Location location) {
 
+    }
+
+    public void getAndSendLocation() {
+        Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mCurrentLocation != null) {
+            // Print current location if not null
+            String locationString = mCurrentLocation.getLongitude() + "," + mCurrentLocation.getLatitude();
+            createAndSaveLocation(locationString);
+            Log.d("DEBUG", locationString);
+
+        }
     }
 
     private void createAndSaveLocation(String locationString) {
@@ -186,14 +198,7 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void run() {
             Log.d("DEBUG", "TIMER TASK RUN");
-            Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mCurrentLocation != null) {
-                // Print current location if not null
-                String locationString = mCurrentLocation.getLongitude() + "," + mCurrentLocation.getLatitude();
-                createAndSaveLocation(locationString);
-                Log.d("DEBUG", locationString);
-
-            }
+            getAndSendLocation();
         }
     }
 }
