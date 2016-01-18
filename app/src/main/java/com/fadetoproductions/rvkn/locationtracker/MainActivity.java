@@ -2,18 +2,13 @@ package com.fadetoproductions.rvkn.locationtracker;
 
 import com.google.android.gms.location.LocationListener;
 
-import android.app.Activity;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,9 +21,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.parse.Parse;
 import com.parse.ParseObject;
-import com.parse.ParseUser;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,9 +40,9 @@ public class MainActivity extends AppCompatActivity implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
 
-    private long UPDATE_INTERVAL = 10 * 1000;  /* 10 secs */
+    private long UPDATE_INTERVAL = 299 * 1000;  /* 299 secs */
     private long FASTEST_INTERVAL = 2000; /* 2 sec */
-    private long TIMER_INTERVAL = 10000; /* 10 sec */
+    private long TIMER_INTERVAL = 300 * 1000; /* 5 mins */
 
     static Timer timer;
 
@@ -71,10 +64,12 @@ public class MainActivity extends AppCompatActivity implements
 
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                hideKeyboard();
                 username = nameInput.getText().toString();
                 Log.v("The user is ", username);
                 hideUsernameSelection();
-                Toast.makeText(getApplicationContext(), "Thank you " + username, Toast.LENGTH_SHORT).show();
+                String toastString = "Alright " + username + "! Let's this show on the road. Hopefully this is working :). You should be able to background the app now.";
+                Toast.makeText(getApplicationContext(), toastString, Toast.LENGTH_LONG).show();
                 finalNameTextView.setText(username);
             }
         });
@@ -83,8 +78,16 @@ public class MainActivity extends AppCompatActivity implements
     public void hideUsernameSelection() {
         nameInput.setVisibility(EditText.GONE);
         startButton.setVisibility(Button.GONE);
+
     }
 
+    public void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
 
     public void setupParse() {
         Parse.enableLocalDatastore(this);
@@ -115,7 +118,9 @@ public class MainActivity extends AppCompatActivity implements
     protected void onStop() {
         // Disconnecting the client invalidates it.
 //        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        mGoogleApiClient.disconnect();
+
+        Log.d("DEBUG", "STOPPED");
+        Log.d("DEBUG", username);
         super.onStop();
     }
 
@@ -148,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.d("DEBUG", "FAILED");
+        Log.d("DEBUG", "CONNECTION FAILED");
     }
 
     // Trigger new location updates at interval
@@ -174,8 +179,7 @@ public class MainActivity extends AppCompatActivity implements
         locationCoordinates.setUsername(username);
         Date date = new Date();
         locationCoordinates.setTimeVisited(date);
-//        locationCoordinates.uploadToParse();
-//        Toast.makeText(getApplicationContext(), "Saving location!", Toast.LENGTH_SHORT).show();
+        locationCoordinates.uploadToParse();
     }
 
     public class SendLocationTimerTask extends TimerTask {
@@ -187,7 +191,8 @@ public class MainActivity extends AppCompatActivity implements
                 // Print current location if not null
                 String locationString = mCurrentLocation.getLongitude() + "," + mCurrentLocation.getLatitude();
                 createAndSaveLocation(locationString);
-                Log.d("DEBUG", "current location: " + locationString);
+                Log.d("DEBUG", locationString);
+
             }
         }
     }
