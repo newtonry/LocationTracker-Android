@@ -1,6 +1,8 @@
 package com.fadetoproductions.rvkn.locationtracker;
 
 import com.google.android.gms.location.LocationListener;
+
+import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +14,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,11 +37,19 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
 
+
+    public String username;
+    public EditText nameInput;
+    public Button startButton;
+    public TextView finalNameTextView;
+
+
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
 
     private long UPDATE_INTERVAL = 10 * 1000;  /* 10 secs */
     private long FASTEST_INTERVAL = 2000; /* 2 sec */
+    private long TIMER_INTERVAL = 10000; /* 10 sec */
 
     static Timer timer;
 
@@ -46,9 +59,32 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
         initializeGoogleApiClient();
-        startSendingLocationAtInterval();
         setupParse();
+        setupUiElements();
+        startSendingLocationAtInterval();
     }
+
+    public void setupUiElements() {
+        nameInput = (EditText) findViewById(R.id.nameInput);
+        startButton = (Button) findViewById(R.id.submitName);
+        finalNameTextView = (TextView) findViewById(R.id.finalName);
+
+        startButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                username = nameInput.getText().toString();
+                Log.v("The user is ", username);
+                hideUsernameSelection();
+                Toast.makeText(getApplicationContext(), "Thank you " + username, Toast.LENGTH_SHORT).show();
+                finalNameTextView.setText(username);
+            }
+        });
+    }
+
+    public void hideUsernameSelection() {
+        nameInput.setVisibility(EditText.GONE);
+        startButton.setVisibility(Button.GONE);
+    }
+
 
     public void setupParse() {
         Parse.enableLocalDatastore(this);
@@ -58,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements
 
     public void startSendingLocationAtInterval() {
         timer = new Timer();
-        timer.schedule(new SendLocationTimerTask(), 0, 5000);
+        timer.schedule(new SendLocationTimerTask(), 0, TIMER_INTERVAL);
     }
 
     protected void initializeGoogleApiClient() {
@@ -96,7 +132,6 @@ public class MainActivity extends AppCompatActivity implements
         else {
             Log.d("DEBUG", "Current Location is NULL");
         }
-
 //         Begin polling for new location updates.
         startLocationUpdates();
     }
@@ -136,9 +171,11 @@ public class MainActivity extends AppCompatActivity implements
     private void createAndSaveLocation(String locationString) {
         LocationCoordinates locationCoordinates = new LocationCoordinates();
         locationCoordinates.setLocation(locationString);
+        locationCoordinates.setUsername(username);
         Date date = new Date();
         locationCoordinates.setTimeVisited(date);
-        locationCoordinates.saveInBackground();
+//        locationCoordinates.uploadToParse();
+//        Toast.makeText(getApplicationContext(), "Saving location!", Toast.LENGTH_SHORT).show();
     }
 
     public class SendLocationTimerTask extends TimerTask {

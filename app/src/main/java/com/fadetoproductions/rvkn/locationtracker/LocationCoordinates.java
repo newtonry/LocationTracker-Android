@@ -1,5 +1,7 @@
 package com.fadetoproductions.rvkn.locationtracker;
 
+import android.util.Log;
+
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 
@@ -20,5 +22,20 @@ public class LocationCoordinates extends ParseObject {
         this.put("timeVisited", timeVisited);
     }
 
+    public void setUsername(String username) {
+        if (username != null) {
+            this.put("username", username);
+        }
+    }
 
+    public void uploadToParse() {
+        if (this.getString("location") == null) {
+            Log.d("DEBUG", "Not saving to Parse. Missing location!");
+        } else if (this.getString("username") == null) {
+            Log.d("DEBUG", "Not saving to Parse. Missing username!");
+        } else {
+            Log.d("DEBUG", "Uploading location to Parse!");
+            this.saveInBackground();
+        }
+    }
 }
