@@ -3,6 +3,7 @@ package com.fadetoproductions.rvkn.locationtracker;
 import com.google.android.gms.location.LocationListener;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -29,12 +30,13 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-
-
     public String username;
     public EditText nameInput;
     public Button startButton;
+    public Button sendLocationButton;
     public TextView finalNameTextView;
+
+    private String SHARED_PREFERENCES_FILENAME = "LocationTrackerPreferences";
 
 
     private GoogleApiClient mGoogleApiClient;
@@ -60,26 +62,63 @@ public class MainActivity extends AppCompatActivity implements
     public void setupUiElements() {
         nameInput = (EditText) findViewById(R.id.nameInput);
         startButton = (Button) findViewById(R.id.submitName);
+        sendLocationButton = (Button) findViewById(R.id.sendLocationButton);
         finalNameTextView = (TextView) findViewById(R.id.finalName);
+        setupSendLocationButtonListener();
 
+        username = getSavedUsernameFromSharedPreferences();
+        if (username.equals("")) {
+            setupStartButtonListener();
+        } else {
+            setUsernameTextViewAndHideInput();
+        }
+    }
+
+    public void setUsernameTextViewAndHideInput() {
+        finalNameTextView.setText(username);
+        hideUsernameSelection();
+    }
+
+    public void setupSendLocationButtonListener() {
+        sendLocationButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                getAndSendLocation();
+                Toast.makeText(getApplicationContext(), "Saving your location!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void setupStartButtonListener() {
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 hideKeyboard();
                 username = nameInput.getText().toString();
+                saveUsernameToSharedPreferences(username);
                 Log.v("The user is ", username);
-                hideUsernameSelection();
                 String toastString = "Alright " + username + "! Let's this show on the road. Hopefully this is working :). You should be able to background the app now.";
                 Toast.makeText(getApplicationContext(), toastString, Toast.LENGTH_LONG).show();
-                finalNameTextView.setText(username);
+                setUsernameTextViewAndHideInput();
                 getAndSendLocation();
             }
         });
     }
 
+    public void saveUsernameToSharedPreferences(String username) {
+        SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFERENCES_FILENAME, MODE_PRIVATE).edit();
+        editor.putString("username", username);
+        editor.commit();
+    }
+
+    public String getSavedUsernameFromSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFERENCES_FILENAME, MODE_PRIVATE);
+        return prefs.getString("username", "");
+    }
+
+
     public void hideUsernameSelection() {
         nameInput.setVisibility(EditText.GONE);
         startButton.setVisibility(Button.GONE);
-
+        sendLocationButton.setVisibility(View.VISIBLE);
     }
 
     public void hideKeyboard() {
@@ -167,7 +206,6 @@ public class MainActivity extends AppCompatActivity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                 mLocationRequest, this);
     }
-
 
     @Override
     public void onLocationChanged(Location location) {

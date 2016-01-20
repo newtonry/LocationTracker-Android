@@ -1,12 +1,13 @@
 package com.fadetoproductions.rvkn.locationtracker;
 
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 import com.parse.SaveCallback;
 
-import java.text.ParseException;
 import java.util.Date;
 
 
@@ -41,8 +42,10 @@ public class LocationCoordinates extends ParseObject {
                 @Override
                 public void done(com.parse.ParseException e) {
                     if (e == null) {
+//                        Toast.makeText(mainContext, "Your location has been successfully saved!", Toast.LENGTH_SHORT).show();
                         Log.d("DEBUG", "Successfully saved to Parse!");
                     } else {
+//                        Toast.makeText(mainContext, "There was an issue saving your location!", Toast.LENGTH_SHORT).show();
                         Log.d("DEBUG", "There was an issue saving to Parse.");
                     }
                 }
